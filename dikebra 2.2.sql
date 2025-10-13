@@ -17,6 +17,7 @@ INSERT INTO tbl_areas_de_trabalho (nome) VALUES
 ('Engenharia de Processos'),
 ('Operações');
 
+
 CREATE TABLE tbl_empresa (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100),
@@ -32,6 +33,8 @@ INSERT INTO tbl_empresa (nome, cnpj, cidade, estado) VALUES
 ('Limpeza Forte ME', '45678901000104', 'Curitiba', 'PR'),
 ('Casa Limpa Serviços', '56789012000105', 'Salvador', 'BA');
 
+DROP TABLE IF EXISTS tbl_vaga;
+
 CREATE TABLE tbl_vaga(
 	id_vaga INT AUTO_INCREMENT PRIMARY KEY,
 	nome VARCHAR(50),
@@ -42,17 +45,18 @@ CREATE TABLE tbl_vaga(
 	FOREIGN KEY (id_empresa) REFERENCES tbl_empresa(id)
 );
 
-INSERT INTO tbl_vaga (nome, id_categoria,id_empresa) VALUES
-('gerente',, 2.50, 2),
-('analista', 4, 15.99, 2),
-('coordenador', 2, 1.50, 2), 
-('gestor', 4, 20.99, 2),
-('assistente', 1, 20.90, 1),
-('estágiarios', 5, 15.50, 1),
-('técnicos', 1, 25.50, 3),
-('auxliar','Fernanda Rocha', 10.50, 3),
-('diretor', 'Daniel Ribeiro, 22.71, 4),
-('ceo',''Larissa Martins', 16.99, 5);
+INSERT INTO tbl_vaga (nome, id_categoria, preco, id_empresa) VALUES
+('Gerente', 2, 2.50, 2),
+('Analista', 4, 15.99, 2),
+('Coordenador', 2, 1.50, 2), 
+('Gestor', 4, 20.99, 2),
+('Assistente', 1, 20.90, 1),
+('Estagiário', 5, 15.50, 1),
+('Técnico', 1, 25.50, 3),
+('Auxiliar', 5, 10.50, 3),
+('Diretor', 6, 22.71, 4),
+('CEO', 7, 16.99, 5);
+
 
 CREATE TABLE tbl_nivel_da_vaga (
 	id INT AUTO_INCREMENT PRIMARY KEY,
@@ -171,3 +175,35 @@ INSERT INTO tbl_contato (id_candidatura, id_vaga) VALUES
 (7, 4),
 (7, 2),
 (8, 1);
+
+ALTER TABLE tbl_vaga
+DROP FOREIGN KEY tbl_vaga_ibfk_2;
+
+ALTER TABLE tbl_vaga
+ADD CONSTRAINT fk_vaga_empresa
+FOREIGN KEY (id_empresa) REFERENCES tbl_empresa(id)
+ON DELETE CASCADE;
+
+
+ALTER TABLE tbl_contato
+DROP FOREIGN KEY tbl_contato_ibfk_2;
+
+ALTER TABLE tbl_contato
+ADD CONSTRAINT fk_contato_vaga
+FOREIGN KEY (id_vaga) REFERENCES tbl_vaga(id_vaga)
+ON DELETE CASCADE;
+
+
+ALTER TABLE tbl_candidato ADD COLUMN is_pcd BOOLEAN DEFAULT FALSE;
+
+DELETE FROM tbl_empresa WHERE id = 2;
+
+ALTER TABLE tbl_vaga 
+ADD COLUMN is_pcd BOOLEAN DEFAULT FALSE;
+
+UPDATE tbl_vaga SET is_pcd = TRUE WHERE nome IN ('Assistente', 'Estagiário');
+
+SELECT * FROM tbl_vaga WHERE is_pcd = FALSE;
+
+
+
