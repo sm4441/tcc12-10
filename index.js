@@ -9,8 +9,12 @@ const { editarCliente } = require('./src/DAO/cliente/editarCliente.js');
 const { inserirEmpresa } = require('./src/DAO/Empresa/addEmpresa.js');
 const {buscarEmpresa} = require('./src/DAO/Empresa/buscarEmpresa.js');
 const {deletarEmpresa} = require('./src/DAO/Empresa/deletEmpresa.js');
+const {editarEmpresa} = require('./src/DAO/Empresa/editarEmpresa')
 //Vaga
-const {inserirVaga} = require('./src/DAO/vaga/addVaga.js')
+const {inserirVaga} = require('./src/DAO/vaga/addVaga.js');
+const {editarVaga} = require('./src/DAO/vaga/aditarVaga.js');
+const {buscarVaga} = require('./src/DAO/vaga/buscarVaga.js');
+const {deletarVaga} = require('./src/DAO/vaga/deliteVaga')
 
 const { conexao, closeConexao, testarConexao } = require('./src/DAO/conexao');
 
@@ -105,22 +109,17 @@ app.listen(porta, () => {
 
 app.post('/tcc/add_empresa', async (req, res) => {
     try {
-        const { id, nome, cnpj, cidade, estado } = req.body;
+        const { nome, cnpj, cidade, estado } = req.body;
 
-        // Validação: verificar se todos os campos estão presentes
-        if (
-            id == null || !nome == null  || !cnpj == null  || !cidade == null  || 
-            !estado == null 
-        ) {
+        // Validação: todos os campos obrigatórios
+        if (!nome || !cnpj || !cidade || !estado) {
             return res.status(400).json({
                 mensagem: "Dados incompletos: todos os campos são obrigatórios."
             });
         }
 
         // Inserir no banco
-        const resultado = await inserirEmpresa(
-            id, nome, cnpj, cidade, estado
-        );
+        const resultado = await inserirEmpresa(nome, cnpj, cidade, estado);
 
         if (resultado.sucesso) {
             return res.status(201).json({
@@ -129,10 +128,11 @@ app.post('/tcc/add_empresa', async (req, res) => {
             });
         } else {
             return res.status(500).json({
-                mensagem: "Erro ao inserir Empresa",
+                mensagem: "Erro ao inserir empresa",
                 erro: resultado.erro
             });
         }
+
     } catch (error) {
         return res.status(500).json({
             mensagem: "Erro inesperado",
@@ -140,6 +140,7 @@ app.post('/tcc/add_empresa', async (req, res) => {
         });
     }
 });
+
 
 //buscar Empresa
 
@@ -149,12 +150,79 @@ app.get('/tcc/buscar_Empresas', async (req, res) => {
 });
 
 //deletar empresa
-app.delete('/tcc/deletar_empresa', async (req, res) =>{
-    let {id} = req.params
-    let result = await deletarEmpresa(id)
-    res.json(result)
+
+app.delete('/tcc/deletar_empresa', async (req, res) => {
+    try {
+        const { id } = req.body;
+
+        if (!id) {
+            return res.status(400).json({
+                mensagem: "O campo 'id' é obrigatório."
+            });
+        }
+
+        const resultado = await deletarEmpresa(id);
+
+        if (resultado.sucesso && resultado.alteracoes > 0) {
+            return res.status(200).json({
+                mensagem: "Empresa deletada com sucesso."
+            });
+        } else if (resultado.sucesso && resultado.alteracoes === 0) {
+            return res.status(404).json({
+                mensagem: "Nenhuma empresa encontrada com o ID informado."
+            });
+        } else {
+            return res.status(500).json({
+                mensagem: resultado.mensagem,
+                erro: resultado.erro
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            mensagem: "Erro inesperado.",
+            erro: error.message
+        });
+    }
 });
 
+
+//editar
+
+app.patch('/tcc/editar_empresa', async (req, res) => {
+    try {
+        const { id, campo, valor } = req.body;
+
+        if (!id || !campo) {
+            return res.status(400).json({
+                mensagem: "Campos obrigatórios ausentes: id e campo."
+            });
+        }
+
+        const resultado = await editarEmpresa(id, campo, valor);
+
+        if (resultado.sucesso) {
+            return res.status(200).json({
+                mensagem: "Empresa atualizada com sucesso.",
+                alteracoes: resultado.alteracoes
+            });
+        } else {
+            return res.status(400).json({
+                mensagem: "Erro ao atualizar empresa.",
+                erro: resultado.erro
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            mensagem: "Erro inesperado.",
+            erro: error.message
+        });
+    }
+});
+
+
+//vaga tyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyytttttttttttttyyyyyyyyyyyyyyyy
+
+//add
 
 app.post('/tcc/add_vaga', async (req, res) => {
     try {
@@ -189,6 +257,84 @@ app.post('/tcc/add_vaga', async (req, res) => {
         }
     } catch (error) {
         return res.status(500).json({
+            mensagem: "Erro inesperado.",
+            erro: error.message
+        });
+    }
+});
+
+
+//aditar
+
+app.patch('/tcc/editar_vaga', async (req, res) => {
+    try {
+        const { id_vaga, campo, valor } = req.body;
+
+        if (!id_vaga || !campo) {
+            return res.status(400).json({
+                mensagem: "Campos obrigatórios ausentes: id_vaga e campo."
+            });
+        }
+
+        const resultado = await editarVaga(id_vaga, campo, valor);
+
+        if (resultado.sucesso) {
+            return res.status(200).json({
+                mensagem: "Vaga atualizada com sucesso.",
+                alteracoes: resultado.alteracoes
+            });
+        } else {
+            return res.status(400).json({
+                mensagem: "Erro ao atualizar vaga.",
+                erro: resultado.erro
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            mensagem: "Erro inesperado.",
+            erro: error.message
+        });
+    }
+});
+
+//buscar vaga
+
+app.get('/tcc/busca_Vaga', async (req, res) => {
+    let candidato = await buscarVaga();
+    res.json(candidato);
+});
+
+
+//delete
+
+app.delete('/tcc/deletar_vaga', async (req, res) => {
+    try {
+        const { id_vaga } = req.body;
+
+        if (!id_vaga) {
+            return res.status(400).json({
+                mensagem: "O campo 'id_vaga' é obrigatório."
+            });
+        }
+
+        const resultado = await deletarVaga(id_vaga);
+
+        if (resultado.sucesso && resultado.alteracoes > 0) {
+            return res.status(200).json({
+                mensagem: "Vaga deletada com sucesso."
+            });
+        } else if (resultado.sucesso && resultado.alteracoes === 0) {
+            return res.status(404).json({
+                mensagem: "Nenhuma vaga encontrada com o ID informado."
+            });
+        } else {
+            return res.status(500).json({
+                mensagem: resultado.mensagem,
+                erro: resultado.erro
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
             mensagem: "Erro inesperado.",
             erro: error.message
         });
