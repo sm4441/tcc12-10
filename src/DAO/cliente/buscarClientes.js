@@ -1,6 +1,6 @@
 
 //funcionando
-const {conexao} = require('../conexao.js')
+const {conexao} = require('../conexao')
 
 
 async function buscarClientes(){
