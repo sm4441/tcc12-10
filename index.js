@@ -14,8 +14,8 @@ const {editarEmpresa} = require('./src/DAO/Empresa/editarEmpresa')
 const {inserirVaga} = require('./src/DAO/vaga/addVaga.js');
 const {editarVaga} = require('./src/DAO/vaga/aditarVaga.js');
 const {buscarVaga} = require('./src/DAO/vaga/buscarVaga.js');
-const {deletarVaga} = require('./src/DAO/vaga/deliteVaga')
-
+const {deletarVaga} = require('./src/DAO/vaga/deliteVaga');
+const { login } = require('./src/DAO/login.js');
 const { conexao, closeConexao, testarConexao } = require('./src/DAO/conexao');
 
 // Middleware necessário para usar req.body com JSON
@@ -332,6 +332,34 @@ app.delete('/tcc/deletar_vaga', async (req, res) => {
                 mensagem: resultado.mensagem,
                 erro: resultado.erro
             });
+        }
+    } catch (error) {
+        res.status(500).json({
+            mensagem: "Erro inesperado.",
+            erro: error.message
+        });
+    }
+});
+
+//login
+app.use(express.json());
+
+app.post('/tcc/login', async (req, res) => {
+    try {
+        const { email, senha, tipo } = req.body;
+
+        if (!email || !senha || !tipo) {
+            return res.status(400).json({
+                mensagem: "Campos obrigatórios: email, senha e tipo."
+            });
+        }
+
+        const resultado = await login(email, senha, tipo);
+
+        if (resultado.sucesso) {
+            return res.status(200).json(resultado);
+        } else {
+            return res.status(401).json(resultado);
         }
     } catch (error) {
         res.status(500).json({
