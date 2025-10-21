@@ -33,10 +33,10 @@ app.get('/tcc/busca', async (req, res) => {
 
 app.post('/tcc/add_usuario', async (req, res) => {
     try {
-        const { cpf, telefone, nome_completo, email, id_endereco, id_status, is_pcd } = req.body;
+        const { cpf, telefone, nome_completo, email, id_endereco, id_status, senha, is_pcd } = req.body;
 
         // Validação: verificar se todos os campos obrigatórios estão presentes
-        if (!cpf || !nome_completo || !telefone || !email || id_endereco == null || id_status == null) {
+        if (!cpf || !nome_completo || !telefone || !email || id_endereco == null || id_status == null || !senha) {
             return res.status(400).json({
                 mensagem: "Dados incompletos: todos os campos obrigatórios devem ser informados."
             });
@@ -50,6 +50,7 @@ app.post('/tcc/add_usuario', async (req, res) => {
             email,
             id_endereco,
             id_status,
+            senha,
             is_pcd ?? false // padrão: pessoa normal
         );
 
@@ -342,29 +343,9 @@ app.delete('/tcc/deletar_vaga', async (req, res) => {
 });
 
 //login
-app.use(express.json());
 
-app.post('/tcc/login', async (req, res) => {
-    try {
-        const { email, senha, tipo } = req.body;
-
-        if (!email || !senha || !tipo) {
-            return res.status(400).json({
-                mensagem: "Campos obrigatórios: email, senha e tipo."
-            });
-        }
-
-        const resultado = await login(email, senha, tipo);
-
-        if (resultado.sucesso) {
-            return res.status(200).json(resultado);
-        } else {
-            return res.status(401).json(resultado);
-        }
-    } catch (error) {
-        res.status(500).json({
-            mensagem: "Erro inesperado.",
-            erro: error.message
-        });
-    }
+app.post("/tcc/login", async (req, res) => {
+    const { email, senha, tipo } = req.body;
+    const resultado = await login(email, senha, tipo);
+    res.status(resultado.sucesso ? 200 : 400).json(resultado);
 });

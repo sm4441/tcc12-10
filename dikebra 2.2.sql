@@ -207,3 +207,5 @@ SELECT * FROM tbl_vaga WHERE is_pcd = FALSE;
 
 
 
+ALTER TABLE tbl_empresa ADD COLUMN senha VARCHAR(255) AFTER email;
+ALTER TABLE tbl_candidato ADD COLUMN senha VARCHAR(255) AFTER email;
