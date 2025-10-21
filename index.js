@@ -15,7 +15,10 @@ const {inserirVaga} = require('./src/DAO/vaga/addVaga.js');
 const {editarVaga} = require('./src/DAO/vaga/aditarVaga.js');
 const {buscarVaga} = require('./src/DAO/vaga/buscarVaga.js');
 const {deletarVaga} = require('./src/DAO/vaga/deliteVaga');
+//login
 const { login } = require('./src/DAO/login.js');
+//midwer
+const {autenticarToken} = require('./src/DAO/middleware/authMiddleware.js')
 const { conexao, closeConexao, testarConexao } = require('./src/DAO/conexao');
 
 // Middleware necessário para usar req.body com JSON
@@ -348,4 +351,36 @@ app.post("/tcc/login", async (req, res) => {
     const { email, senha, tipo } = req.body;
     const resultado = await login(email, senha, tipo);
     res.status(resultado.sucesso ? 200 : 400).json(resultado);
+});
+
+
+//midwer
+
+
+// 🟢 Rota protegida → só acessa quem estiver logado
+app.get("/tcc/perfil", autenticarToken, (req, res) => {
+    res.json({
+        sucesso: true,
+        mensagem: "Acesso autorizado!",
+        usuario: req.usuario
+    });
+});
+
+// Exemplo: rota de empresas protegida
+app.get("/tcc/empresas", autenticarToken, async (req, res) => {
+    // Aqui você pode usar req.usuario.tipo para restringir ainda mais:
+    if (req.usuario.tipo !== "empresa") {
+        return res.status(403).json({ sucesso: false, mensagem: "Acesso permitido apenas para empresas." });
+    }
+
+    // Exemplo fictício de resposta:
+    res.json({
+        sucesso: true,
+        mensagem: "Lista de empresas acessada com sucesso!",
+        usuario: req.usuario
+    });
+});
+
+app.listen(3000, () => {
+    console.log("🚀 Servidor rodando na porta 3000");
 });
