@@ -15,6 +15,7 @@ const {inserirVaga} = require('./src/DAO/vaga/addVaga.js');
 const {editarVaga} = require('./src/DAO/vaga/aditarVaga.js');
 const {buscarVaga} = require('./src/DAO/vaga/buscarVaga.js');
 const {deletarVaga} = require('./src/DAO/vaga/deliteVaga');
+const {buscarVagasPorPerfil} = require('./src/DAO/vaga/vagas_perfil')
 //login
 const { login } = require('./src/DAO/login.js');
 //midwer
@@ -307,8 +308,21 @@ app.get('/tcc/busca_Vaga', async (req, res) => {
     let candidato = await buscarVaga();
     res.json(candidato);
 });
+//vagas por perfil
+app.post('/tcc/vagas_perfil', async (req, res) => {
+    const { cpf } = req.body; // CPF enviado no body
 
+    if (!cpf) {
+        return res.status(400).json({ sucesso: false, mensagem: "CPF do candidato é obrigatório." });
+    }
 
+    try {
+        const vagas = await buscarVagasPorPerfil(cpf);
+        res.status(vagas.sucesso ? 200 : 400).json(vagas);
+    } catch (err) {
+        res.status(500).json({ sucesso: false, mensagem: "Erro inesperado.", erro: err.message });
+    }
+});
 //delete
 
 app.delete('/tcc/deletar_vaga', async (req, res) => {
