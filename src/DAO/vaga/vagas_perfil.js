@@ -4,8 +4,9 @@ async function buscarVagasPorPerfil(cpf) {
     const conn = await conexao();
 
     try {
+        // Busca o candidato e sua área de atuação (id_status)
         const [candidatoRows] = await conn.query(
-            "SELECT id_status, limite, is_pcd FROM tbl_candidato WHERE cpf = ?",
+            "SELECT id_status, is_pcd FROM tbl_candidato WHERE cpf = ?",
             [cpf]
         );
 
@@ -15,13 +16,15 @@ async function buscarVagasPorPerfil(cpf) {
 
         const candidato = candidatoRows[0];
 
+        // Busca vagas com base na área (id_status)
         const [vagasRows] = await conn.query(
-            `SELECT v.id_vaga, v.nome AS nome_vaga, v.preco, e.nome AS empresa, a.nome AS area
+            `SELECT v.id_vaga, v.nome AS nome_vaga, e.nome AS empresa, a.nome AS area, v.is_pcd
              FROM tbl_vaga v
              JOIN tbl_empresa e ON v.id_empresa = e.id
              JOIN tbl_areas_de_trabalho a ON v.id_categoria = a.id
-             WHERE v.id_categoria = ? AND v.preco <= ?`,
-             [candidato.id_status, candidato.limite]
+             WHERE v.id_categoria = ? 
+             AND (v.is_pcd = FALSE OR (v.is_pcd = TRUE AND ? = TRUE))`,
+            [candidato.id_status, candidato.is_pcd]
         );
 
         return { sucesso: true, vagas: vagasRows };

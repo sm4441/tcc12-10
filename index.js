@@ -40,7 +40,7 @@ app.post('/tcc/add_usuario', async (req, res) => {
         const { cpf, telefone, nome_completo, email, id_endereco, id_status, senha, is_pcd } = req.body;
 
         // Validação: verificar se todos os campos obrigatórios estão presentes
-        if (!cpf || !nome_completo || !telefone || !email || id_endereco == null || id_status == null || !senha) {
+        if (!cpf || !nome_completo || !telefone || !email || !limite || id_endereco == null || id_status == null || !senha) {
             return res.status(400).json({
                 mensagem: "Dados incompletos: todos os campos obrigatórios devem ser informados."
             });
@@ -55,6 +55,7 @@ app.post('/tcc/add_usuario', async (req, res) => {
             id_endereco,
             id_status,
             senha,
+            limite,
             is_pcd ?? false // padrão: pessoa normal
         );
 
@@ -310,18 +311,14 @@ app.get('/tcc/busca_Vaga', async (req, res) => {
 });
 //vagas por perfil
 app.post('/tcc/vagas_perfil', async (req, res) => {
-    const { cpf } = req.body; // CPF enviado no body
+    const { cpf } = req.body;
 
     if (!cpf) {
-        return res.status(400).json({ sucesso: false, mensagem: "CPF do candidato é obrigatório." });
+        return res.status(400).json({ sucesso: false, mensagem: "CPF não informado." });
     }
 
-    try {
-        const vagas = await buscarVagasPorPerfil(cpf);
-        res.status(vagas.sucesso ? 200 : 400).json(vagas);
-    } catch (err) {
-        res.status(500).json({ sucesso: false, mensagem: "Erro inesperado.", erro: err.message });
-    }
+    const resultado = await buscarVagasPorPerfil(cpf);
+    res.json(resultado);
 });
 //delete
 
