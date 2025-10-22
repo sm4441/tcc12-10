@@ -5,6 +5,7 @@ const { buscarClientes } = require('./src/DAO/cliente/buscarClientes.js');
 const { inserirCandidato } = require('./src/DAO/cliente/addUsuario.js');
 const {deletarUsuario} = require('./src/DAO/cliente/deliteCliente');
 const { editarCliente } = require('./src/DAO/cliente/editarCliente.js');
+const {candidatar} = require('./src/DAO/cliente/caditarse.js')
 //empresa
 const { inserirEmpresa } = require('./src/DAO/Empresa/addEmpresa.js');
 const {buscarEmpresa} = require('./src/DAO/Empresa/buscarEmpresa.js');
@@ -99,6 +100,19 @@ app.patch('/empresa_produtos_limpeza/v4/cliente', async (req, res) =>{
     res.status(200).json(resultado)
     
 })
+
+//candidatar se 
+
+app.post('/tcc/candidatar', async (req, res) => {
+    const { cpf, id_vaga } = req.body;
+
+    if (!cpf || !id_vaga) {
+        return res.status(400).json({ sucesso: false, mensagem: "CPF e ID da vaga são obrigatórios." });
+    }
+
+    const resultado = await candidatar(cpf, id_vaga);
+    res.json(resultado);
+});
 
 
 
