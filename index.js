@@ -10,7 +10,10 @@ const {candidatar} = require('./src/DAO/cliente/caditarse.js')
 const { inserirEmpresa } = require('./src/DAO/Empresa/addEmpresa.js');
 const {buscarEmpresa} = require('./src/DAO/Empresa/buscarEmpresa.js');
 const {deletarEmpresa} = require('./src/DAO/Empresa/deletEmpresa.js');
-const {editarEmpresa} = require('./src/DAO/Empresa/editarEmpresa')
+const {editarEmpresa} = require('./src/DAO/Empresa/editarEmpresa');
+const {marcarNotificacaoComoLida}= require('./src/DAO/Empresa/notificação.js');
+const {listarNotificacoesPorEmpresa}= require('./src/DAO/Empresa/notificação.js')
+const { authEmpresa } = require('./src/DAO/middleware/authEmpresa.js');
 //Vaga
 const {inserirVaga} = require('./src/DAO/vaga/addVaga.js');
 const {editarVaga} = require('./src/DAO/vaga/aditarVaga.js');
@@ -19,6 +22,7 @@ const {deletarVaga} = require('./src/DAO/vaga/deliteVaga');
 const {buscarVagasPorPerfil} = require('./src/DAO/vaga/vagas_perfil')
 //login
 const { login } = require('./src/DAO/login.js');
+const bodyParser = require('body-parser');
 //midwer
 const {autenticarToken} = require('./src/DAO/middleware/authMiddleware.js')
 const { conexao, closeConexao, testarConexao } = require('./src/DAO/conexao');
@@ -38,7 +42,7 @@ app.get('/tcc/busca', async (req, res) => {
 
 app.post('/tcc/add_usuario', async (req, res) => {
     try {
-        const { cpf, telefone, nome_completo, email, id_endereco, id_status, senha, is_pcd } = req.body;
+        const { cpf, telefone, nome_completo, email, id_endereco, id_status, senha, limite, is_pcd } = req.body;
 
         // Validação: verificar se todos os campos obrigatórios estão presentes
         if (!cpf || !nome_completo || !telefone || !email || !limite || id_endereco == null || id_status == null || !senha) {
@@ -107,7 +111,7 @@ app.post('/tcc/candidatar', async (req, res) => {
     const { cpf, id_vaga } = req.body;
 
     if (!cpf || !id_vaga) {
-        return res.status(400).json({ sucesso: false, mensagem: "CPF e ID da vaga são obrigatórios." });
+        return res.status(400).json({ sucesso: false, mensagem: "CPF e id_vaga são obrigatórios." });
     }
 
     const resultado = await candidatar(cpf, id_vaga);
@@ -115,31 +119,23 @@ app.post('/tcc/candidatar', async (req, res) => {
 });
 
 
-
-const porta = 3000;
-
-app.listen(porta, () => {
-    console.log("Operando na porta " + porta);
-    testarConexao();
-});
-
 //Epresa1234567890
 
 // addEmpresa
 
 app.post('/tcc/add_empresa', async (req, res) => {
     try {
-        const { nome, cnpj, cidade, estado } = req.body;
+        const { nome, cnpj, cidade, estado, email, senha } = req.body;
 
         // Validação: todos os campos obrigatórios
-        if (!nome || !cnpj || !cidade || !estado) {
+        if (!nome || !cnpj || !cidade || !estado || !email || !senha) {
             return res.status(400).json({
                 mensagem: "Dados incompletos: todos os campos são obrigatórios."
             });
         }
 
         // Inserir no banco
-        const resultado = await inserirEmpresa(nome, cnpj, cidade, estado);
+        const resultado = await inserirEmpresa(nome, cnpj, cidade, estado, email, senha);
 
         if (resultado.sucesso) {
             return res.status(201).json({
@@ -238,6 +234,28 @@ app.patch('/tcc/editar_empresa', async (req, res) => {
         });
     }
 });
+
+
+
+
+// Listar notificações da empresa logada (usa token)
+app.get('/tcc/notificacoes', authEmpresa, async (req, res) => {
+  const id_empresa = req.empresa.id;
+  const resultado = await listarNotificacoesPorEmpresa(id_empresa);
+  if (!resultado.sucesso) return res.status(500).json(resultado);
+  res.json(resultado);
+});
+
+// Marcar notificação como lida (empresa logada)
+app.post('/tcc/notificacao/marcar_lida', authEmpresa, async (req, res) => {
+  const { id_notificacao } = req.body;
+  if (!id_notificacao) return res.status(400).json({ sucesso: false, mensagem: 'id_notificacao é obrigatório.' });
+
+  const resultado = await marcarNotificacaoComoLida(id_notificacao);
+  if (!resultado.sucesso) return res.status(500).json(resultado);
+  res.json({ sucesso: true, mensagem: resultado.afetadas > 0 ? 'Notificação marcada como lida.' : 'Notificação não encontrada.' });
+});
+
 
 
 //vaga tyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyytttttttttttttyyyyyyyyyyyyyyyy
@@ -405,7 +423,9 @@ app.get("/tcc/empresas", autenticarToken, async (req, res) => {
         usuario: req.usuario
     });
 });
+const porta = 3000;
 
-app.listen(3000, () => {
-    console.log("🚀 Servidor rodando na porta 3000");
+app.listen(porta, () => {
+    console.log("Operando na porta " + porta);
+    testarConexao();
 });
