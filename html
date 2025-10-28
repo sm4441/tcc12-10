@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./CSS/Style.css" type="text/css">
+    <title>Criação de Conta</title>
+    <script>
+        // Função para alternar entre CPF e CNPJ
+        function toggleDocument() {
+            var cpfInput = document.getElementById("cpf");
+            var cnpjInput = document.getElementById("cnpj");
+            var dataNascimento = document.getElementById("dataNascimento");
+            var dataCriacaoEmpresa = document.getElementById("dataCriacaoEmpresa");
+            var dataNascimentoLabel = document.getElementById("dataNascimentoLabel");
+            var dataCriacaoEmpresaLabel = document.getElementById("dataCriacaoEmpresaLabel");
+            var toggleLabel = document.getElementById("toggleLabel");
+
+            // Verificar o estado do checkbox e alternar entre CPF e CNPJ
+            if (document.getElementById("toggleCheckbox").checked) {
+                // Exibe CNPJ e esconde CPF
+                cpfInput.style.display = "none";
+                cnpjInput.style.display = "block";
+                dataNascimento.style.display = "none";
+                dataCriacaoEmpresa.style.display = "block";
+                dataNascimentoLabel.style.display = "none";
+                dataCriacaoEmpresaLabel.style.display = "block";
+                toggleLabel.innerText = "Trocar para CPF";
+            } else {
+                // Exibe CPF e esconde CNPJ
+                cpfInput.style.display = "block";
+                cnpjInput.style.display = "none";
+                dataNascimento.style.display = "block";
+                dataCriacaoEmpresa.style.display = "none";
+                dataNascimentoLabel.style.display = "block";
+                dataCriacaoEmpresaLabel.style.display = "none";
+                toggleLabel.innerText = "Trocar para CNPJ";
+            }
+        }
+    </script>
+</head>
+<body class="loginbackground">
+
+    <div>
+        <ul class="voltar" style="background-color: rgb(252, 98, 98);margin: 20px; margin-top: -120px; width: 1910px; box-shadow: 10px 10px 25px rgb(139, 39, 39);">
+            <li class="drop">
+                <button class="botaodrop" style="height: 50px; width: 60px; background-color: rgb(219, 55, 55);">
+                    <img style="height: 20px; width: 30px;" src="./CSS/imagens/tracos.png" alt="" herf="./paginainicialcandidato.html">
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="logindiv2" style="box-shadow: 10px 10px 25px rgb(139, 39, 39); margin-top: 5px;">
+        <img class="logo" src="./CSS/imagens/iconedosite.png">
+        <h2>Criar Conta</h2>
+
+        <div class="entrar">
+            <input type="text" placeholder="Email">
+            <div style="height: 5px;"></div>
+            <input type="text" placeholder="Senha">
+            <div style="height: 5px;"></div>
+            <input type="text" placeholder="Nome Completo">
+            <div style="height: 5px;"></div>
+
+            <!-- CPF e CNPJ -->
+            <input type="text" id="cpf" placeholder="CPF" style="display: block;">
+            <input type="text" id="cnpj" placeholder="CNPJ" style="display: none;">
+            <div style="height: 5px;"></div>
+
+            <!-- Data de Nascimento e Data de Criação da Empresa -->
+            <label for="dataNascimento" id="dataNascimentoLabel" style="display: block;">Data de Nascimento:</label>
+            <input style="color: rgb(0, 0, 0); text-align: center; font-size: 18px;" type="date" id="dataNascimento" name="dataNascimento" style="display: block;">
+            
+            <!-- Data de Criação da Empresa -->
+            <label for="dataCriacaoEmpresa" id="dataCriacaoEmpresaLabel" style="display: none;">Data de Criação da Empresa:</label>
+            <input style="color: rgb(0, 0, 0); text-align: center; font-size: 18px;" type="date" id="dataCriacaoEmpresa" name="dataCriacaoEmpresa" style="display: none;">
+
+            <div style="height: 8px;"></div>
+
+            <button style="background-color: rgb(255, 44, 44); border-color:rgb(255, 44, 44); " href="login.html"> Cadastrar</button>
+            <p>OU</p>
+            <button style="background-color: rgb(225, 225, 225); color: rgb(0, 0, 0); border: solid rgb(235, 229, 229);">Entrar com o Google</button>
+            <div style="height: 10px;"></div>
+            <div class="oslink">
+                <a href="./login.html">Já tenho conta</a>
+            </div>
+
+            <!-- Botão de alternância com checkbox -->
+            <div style="margin-top: 10px;">
+                <input type="checkbox" id= "toggleCheckbox"class="toggleCheckbox" onclick="toggleDocument()" >
+                <label  class="toggleLabel"id="toggleLabel" style="vertical-align: middle; font-size: 16px; margin-left: 10px;">Trocar para CNPJ</label>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          const botaoCadastrar = document.querySelector("button[style*='rgb(255, 44, 44)']");
+        
+          botaoCadastrar.addEventListener("click", async () => {
+            // Coleta dos campos
+            const email = document.querySelector("input[placeholder='Email']").value;
+            const senha = document.querySelector("input[placeholder='Senha']").value;
+            const nome_completo = document.querySelector("input[placeholder='Nome Completo']").value;
+            const cpf = document.getElementById("cpf").value;
+            const cnpj = document.getElementById("cnpj").value;
+            const telefone = "11999999999"; // depois você pode criar um campo pra isso
+            const limite = 1000; // exemplo de valor fixo
+            const id_endereco = 1;
+            const id_status = 1;
+            const is_pcd = false;
+        
+            // Decide qual documento enviar
+            const documento = cpf || cnpj;
+        
+            // Monta o corpo da requisição
+            const dados = {
+              cpf: documento,
+              telefone,
+              nome_completo,
+              email,
+              id_endereco,
+              id_status,
+              senha,
+              limite,
+              is_pcd
+            };
+        
+            try {
+              const resposta = await fetch("http://localhost:3000/tcc/add_usuario", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dados)
+              });
+        
+              const resultado = await resposta.json();
+              console.log("Resultado:", resultado);
+        
+              if (resposta.ok) {
+                alert("Usuário cadastrado com sucesso!");
+              } else {
+                alert("Erro: " + (resultado.mensagem || "Falha no cadastro"));
+              }
+        
+            } catch (erro) {
+              console.error("Erro na requisição:", erro);
+              alert("Erro ao conectar com o servidor!");
+            }
+          });
+        });
+        </script>
+        
+</body>
+</html>
