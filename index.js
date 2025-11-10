@@ -1,8 +1,5 @@
 const express = require('express');
 const app = express(); // <--- Esta linha estava faltando
-var cors = require('cors')
-app.use(express.json());
-app.use(cors())
 //candidato
 const { buscarClientes } = require('./src/DAO/cliente/buscarClientes.js');
 const { inserirCandidato } = require('./src/DAO/cliente/addUsuario.js');
@@ -29,9 +26,20 @@ const bodyParser = require('body-parser');
 //midwer
 const {autenticarToken} = require('./src/DAO/middleware/authMiddleware.js')
 const { conexao, closeConexao, testarConexao } = require('./src/DAO/conexao');
+const cors = require('cors');
 
 // Middleware necessário para usar req.body com JSON
+app.use(express.json());
 
+// Corrigido: habilitar CORS para todas as rotas
+app.use(cors({
+    origin: '*', // permite requisições de qualquer origem
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+// Middleware necessário para usar req.body com JSON
+app.use(express.json());
+app.use(cors())
 
 app.get('/tcc/v1', (req, res) => {
     res.json({ msg: "Aplicação Funcionando tcc" });
