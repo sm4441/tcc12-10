@@ -30,18 +30,23 @@ async function login(email, senha, tipo) {
 
         const usuario = rows[0];
 
-        // 🔧 Corrigido: comparar a senha com o hash salvo no banco
+        // 🔧 Verifica senha com hash
         const senhaCorreta = await bcrypt.compare(String(senha), usuario.senha);
 
         if (!senhaCorreta) {
             return { sucesso: false, mensagem: "Senha incorreta." };
         }
 
-        // ✅ Gera o token JWT com validade de 2h
+        // ✅ Ajuste para usar CNPJ no login da empresa e CPF no candidato
+        const idUsuario = tipo === "empresa"
+            ? (usuario.id || usuario.cnpj)
+            : (usuario.id || usuario.cpf);
+
+        // ✅ Gera token
         const token = jwt.sign(
             {
-                id: usuario.id || usuario.cpf,
-                nome: usuario.nome_completo || usuario.nome,
+                id: idUsuario,
+                nome: usuario.nome,
                 tipo,
             },
             SECRET,
@@ -53,8 +58,8 @@ async function login(email, senha, tipo) {
             mensagem: "Login realizado com sucesso.",
             token,
             usuario: {
-                id: usuario.id || usuario.cpf,
-                nome: usuario.nome_completo || usuario.nome,
+                id: idUsuario,
+                nome: usuario.nome,
                 email: usuario.email,
                 tipo,
             },
