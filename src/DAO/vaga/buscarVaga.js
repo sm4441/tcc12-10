@@ -8,7 +8,9 @@ async function listarVagasComDetalhes() {
         v.is_pcd,
         v.descricao,
         a.nome AS area_de_trabalho,
-        e.nome_fantasia AS nome_empresa
+        e.nome AS nome_empresa,
+        e.cidade AS cidade_empresa,
+        e.estado AS estado_empresa
     FROM tbl_vaga AS v
     INNER JOIN tbl_areas_de_trabalho AS a
         ON v.id_categoria = a.id
