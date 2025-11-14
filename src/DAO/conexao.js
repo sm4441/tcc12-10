@@ -10,18 +10,6 @@ async function conexao() {
       port: process.env.PORTA_BD,
       user: process.env.USER,
       password: process.env.PASSWORD,
-      database: process.env.DATA_BASE,const mysql = require("mysql2/promise");
-const dotenv = require("dotenv");
-
-dotenv.config(); // ✅ garante que as variáveis do .env estão carregadas
-
-async function conexao() {
-  try {
-    const pool = mysql.createPool({
-      host: process.env.HOST_DATABASE,
-      port: process.env.PORTA_BD,
-      user: process.env.USER,
-      password: process.env.PASSWORD,
       database: process.env.DATA_BASE,
       waitForConnections: true,
       connectionLimit: 10,
