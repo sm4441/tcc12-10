@@ -20,3 +20,5 @@ async function listarVagasComDetalhes() {
   const [rows] = await conn.query(sql);
   return rows;
 }
+
+module.exports = { listarVagasComDetalhes };

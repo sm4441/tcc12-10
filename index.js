@@ -32,7 +32,7 @@ const { authEmpresa } = require('./src/DAO/middleware/authEmpresa.js');
 // Vaga
 const { inserirVaga } = require('./src/DAO/vaga/addVaga.js');
 const { editarVaga } = require('./src/DAO/vaga/aditarVaga.js');
-const { buscarVaga } = require('./src/DAO/vaga/buscarVaga.js');
+const { listarVagasComDetalhes } = require('./src/DAO/vaga/buscarVaga.js');
 const { deletarVaga } = require('./src/DAO/vaga/deliteVaga.js');
 const { buscarVagasPorPerfil } = require('./src/DAO/vaga/vagas_perfil.js');
 
@@ -125,7 +125,7 @@ app.patch('/tcc/editar_vaga', async (req, res) => {
 });
 
 app.get('/tcc/busca_Vaga', async (req, res) => {
-    res.json(await buscarVaga());
+    res.json(await listarVagasComDetalhes());
 });
 
 app.post('/tcc/vagas_perfil', async (req, res) => {
