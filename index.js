@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-
+const { conexao } = require('./src/DAO/conexao');
+const editarPerfil = require('./src/DAO/perfil.js').editarPerfil;
 const app = express();
 
 // -------------------- Middleware --------------------
@@ -145,13 +146,87 @@ app.post('/tcc/login', async (req, res) => {
 
 
 // ---------- Rotas protegidas ----------
-app.get('/tcc/perfil', autenticarToken, (req, res) => {
-    res.json({ sucesso: true, usuario: req.usuario });
-});
+app.get('/tcc/perfil', autenticarToken, async (req, res) => {
+    const conn = await conexao();
+    const usuarioId = req.usuario.id; // vem do token
+    const tipo = req.usuario.tipo;
 
-app.get('/tcc/empresas', autenticarToken, (req, res) => {
-    if (req.usuario.tipo !== 'empresa') return res.status(403).json({ mensagem: "Acesso negado." });
-    res.json({ sucesso: true, mensagem: "Acesso liberado para empresas." });
+    let tabela = tipo === "empresa" ? "tbl_empresa" : "tbl_candidato";
+    let campoId = tipo === "empresa" ? "cnpj" : "cpf";
+
+    try {
+        const [rows] = await conn.query(`SELECT * FROM ${tabela} WHERE ${campoId} = ?`, [usuarioId]);
+        await conn.end();
+
+        if (rows.length === 0) {
+            return res.status(404).json({ sucesso: false, mensagem: "Usuário não encontrado." });
+        }
+
+        res.json({ sucesso: true, usuario: rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ sucesso: false, mensagem: "Erro interno ao buscar perfil.", erro: err.message });
+    }
+});
+app.put('/tcc/perfil', autenticarToken, async (req, res) => {
+    const tipo = req.usuario.tipo;       // 'empresa' ou 'candidato'
+    const idUsuario = req.usuario.id;    // CPF ou CNPJ vindo do token
+    const dadosAtualizados = req.body;   // Objeto com os campos a atualizar
+
+    try {
+        const resultado = await editarPerfil(idUsuario, tipo, dadosAtualizados);
+        if (resultado.sucesso) {
+            res.json(resultado);
+        } else {
+            res.status(400).json(resultado);
+        }
+    } catch (erro) {
+        console.error(erro);
+        res.status(500).json({ sucesso: false, mensagem: "Erro interno ao atualizar perfil.", erro: erro.message });
+    }
+});
+app.put('/tcc/editar-perfil', autenticarToken, async (req, res) => {
+    const conn = await conexao();
+    const usuarioId = req.usuario.id;
+    const tipo = req.usuario.tipo;
+
+    // Determina tabela e coluna de id
+    const tabela = tipo === "empresa" ? "tbl_empresa" : "tbl_candidato";
+    const campoId = tipo === "empresa" ? "cnpj" : "cpf";
+
+    // Lista de colunas válidas para cada tabela
+    const colunasValidas = tipo === "empresa"
+        ? ["nome", "telefone", "email", "senha", "cidade", "estado"]
+        : ["nome_completo", "telefone", "email", "senha"]; // Removemos data_nascimento se não existir
+
+    try {
+        const campos = [];
+        const valores = [];
+
+        // Monta campos e valores apenas se existirem na tabela
+        for (const campo of colunasValidas) {
+            if (req.body[campo] !== undefined) {
+                campos.push(`${campo} = ?`);
+                valores.push(req.body[campo]);
+            }
+        }
+
+        if (campos.length === 0) {
+            await conn.end();
+            return res.status(400).json({ sucesso: false, mensagem: "Nenhum dado válido para atualizar." });
+        }
+
+        valores.push(usuarioId);
+
+        // Executa UPDATE
+        await conn.query(`UPDATE ${tabela} SET ${campos.join(", ")} WHERE ${campoId} = ?`, valores);
+        await conn.end();
+
+        res.json({ sucesso: true, mensagem: "Perfil atualizado com sucesso!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ sucesso: false, mensagem: "Erro ao atualizar perfil.", erro: err.message });
+    }
 });
 
 
