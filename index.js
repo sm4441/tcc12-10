@@ -116,8 +116,9 @@ app.post('/tcc/notificacao/marcar_lida', authEmpresa, async (req, res) => {
 
 // ---------- Vagas ----------
 app.post('/tcc/add_vaga', async (req, res) => {
-    const { nome, id_categoria, salario, id_empresa, is_pcd } = req.body;
-    res.json(await inserirVaga(nome, id_categoria, salario, id_empresa, is_pcd ?? false));
+    const { id_categoria, salario, id_empresa, is_pcd, descricao } = req.body;
+    res.json(await inserirVaga(id_categoria, salario, id_empresa, is_pcd ?? false, descricao));
+
 });
 
 app.patch('/tcc/editar_vaga', async (req, res) => {
