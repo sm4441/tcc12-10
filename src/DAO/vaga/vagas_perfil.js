@@ -18,7 +18,7 @@ async function buscarVagasPorPerfil(cpf) {
 
         // Busca vagas com base na área (id_status)
         const [vagasRows] = await conn.query(
-            `SELECT v.id_vaga, v.nome AS nome_vaga, e.nome AS empresa, a.nome AS area, v.is_pcd
+            `SELECT v.id_vaga AS nome_vaga, e.nome AS empresa, a.nome AS area, v.is_pcd
              FROM tbl_vaga v
              JOIN tbl_empresa e ON v.id_empresa = e.id
              JOIN tbl_areas_de_trabalho a ON v.id_categoria = a.id

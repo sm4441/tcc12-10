@@ -1,7 +1,7 @@
 const mysql = require("mysql2/promise");
 const dotenv = require("dotenv");
 
-dotenv.config(); // ✅ garante que as variáveis do .env estão carregadas
+dotenv.config(); // garante que as variáveis do .env estão carregadas
 
 async function conexao() {
   try {

@@ -4,7 +4,7 @@ async function editarVaga(id_vaga, campo, valor) {
     const data = [valor, id_vaga];
 
     // Colunas que podem ser atualizadas
-    const colunasPermitidas = ['nome', 'id_categoria', 'preco', 'id_empresa', 'is_pcd'];
+    const colunasPermitidas = ['id_categoria', 'valor', 'id_empresa', 'is_pcd'];
 
     if (!colunasPermitidas.includes(campo)) {
         throw new Error('Coluna inválida');
