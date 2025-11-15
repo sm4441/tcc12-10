@@ -4,7 +4,6 @@ const app = express(); // <--- Esta linha estava faltando
 const cors = require('cors');
 const { conexao } = require('./src/DAO/conexao');
 const editarPerfil = require('./src/DAO/perfil.js').editarPerfil;
-const app = express();
 
 // -------------------- Middleware --------------------
 app.use(cors({
@@ -553,4 +552,5 @@ app.listen(porta, () => {
     console.log("Operando na porta " + porta);
     testarConexao();
 });
+
 
