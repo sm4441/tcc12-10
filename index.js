@@ -16,7 +16,6 @@ app.use(express.json());
 
 // -------------------- Imports --------------------
 // Candidato
->>>>>>> 0cf43a5b0fb7ab43b85ca79f872e4734609c72c0
 const { buscarClientes } = require('./src/DAO/cliente/buscarClientes.js');
 const { inserirCandidato } = require('./src/DAO/cliente/addUsuario.js');
 const {deletarUsuario} = require('./src/DAO/cliente/deliteCliente');
@@ -30,7 +29,6 @@ const {editarEmpresa} = require('./src/DAO/Empresa/editarEmpresa');
 const {marcarNotificacaoComoLida}= require('./src/DAO/Empresa/notificação.js');
 const {listarNotificacoesPorEmpresa}= require('./src/DAO/Empresa/notificação.js')
 const { authEmpresa } = require('./src/DAO/middleware/authEmpresa.js');
-<<<<<<< HEAD
 //Vaga
 const {inserirVaga} = require('./src/DAO/vaga/addVaga.js');
 const {editarVaga} = require('./src/DAO/vaga/aditarVaga.js');
@@ -38,7 +36,6 @@ const {buscarVaga} = require('./src/DAO/vaga/buscarVaga.js');
 const {deletarVaga} = require('./src/DAO/vaga/deliteVaga');
 const {buscarVagasPorPerfil} = require('./src/DAO/vaga/vagas_perfil')
 //login
-=======
 
 // Vaga
 const { inserirVaga } = require('./src/DAO/vaga/addVaga.js');
@@ -48,7 +45,6 @@ const { deletarVaga } = require('./src/DAO/vaga/deliteVaga.js');
 const { buscarVagasPorPerfil } = require('./src/DAO/vaga/vagas_perfil.js');
 
 // Login
->>>>>>> 0cf43a5b0fb7ab43b85ca79f872e4734609c72c0
 const { login } = require('./src/DAO/login.js');
 const bodyParser = require('body-parser');
 //midwer
@@ -552,5 +548,6 @@ app.listen(porta, () => {
     console.log("Operando na porta " + porta);
     testarConexao();
 });
+
 
 
