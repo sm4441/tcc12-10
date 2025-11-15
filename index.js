@@ -1,8 +1,6 @@
 const express = require('express');
-<<<<<<< HEAD
 const app = express(); // <--- Esta linha estava faltando
 //candidato
-=======
 const cors = require('cors');
 const { conexao } = require('./src/DAO/conexao');
 const editarPerfil = require('./src/DAO/perfil.js').editarPerfil;
@@ -555,3 +553,4 @@ app.listen(porta, () => {
     console.log("Operando na porta " + porta);
     testarConexao();
 });
+
