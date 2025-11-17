@@ -138,7 +138,7 @@ app.delete('/tcc/deletar_vaga', async (req, res) => {
 
 // ---------- Login ----------
 app.post('/tcc/login', async (req, res) => {
-    console.log(req.body); // deve mostrar email, senha, tipo
+    console.log("BODY RECEBIDO:", req.body);
     const resultado = await login(req.body.email, req.body.senha, req.body.tipo);
     res.status(resultado.sucesso ? 200 : 400).json(resultado);
 });
