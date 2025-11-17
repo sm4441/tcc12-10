@@ -1,3 +1,5 @@
+const { conexao } = require('./conexao');
+const bcrypt = require('bcryptjs');
 document.getElementById("btnLogin").addEventListener("click", async () => {
     const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value;
