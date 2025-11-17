@@ -33,7 +33,7 @@ const { inserirVaga } = require('./src/DAO/vaga/addVaga.js');
 const { editarVaga } = require('./src/DAO/vaga/aditarVaga.js');
 const { buscarVaga } = require('./src/DAO/vaga/buscarVaga.js');
 const { deletarVaga } = require('./src/DAO/vaga/deliteVaga.js');
-const { buscarVagasPorPerfil } = require('./src/DAO/vaga/vagas_perfil.js');
+const { listarVagasComDetalhes } = require('./src/DAO/vaga/vagas_perfil.js');
 
 // Login
 const { login } = require('./src/DAO/login.js');
@@ -128,7 +128,7 @@ app.get('/tcc/busca_Vaga', async (req, res) => {
 });
 
 app.post('/tcc/vagas_perfil', async (req, res) => {
-    res.json(await buscarVagasPorPerfil(req.body.cpf));
+    res.json(await listarVagasComDetalhes(req.body.cpf));
 });
 
 app.delete('/tcc/deletar_vaga', async (req, res) => {
@@ -161,3 +161,4 @@ app.listen(porta, () => {
     console.log("✅ Servidor rodando na porta " + porta);
     testarConexao();
 });
+
