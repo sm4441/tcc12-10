@@ -114,9 +114,56 @@ app.post('/tcc/notificacao/marcar_lida', authEmpresa, async (req, res) => {
 
 
 // ---------- Vagas ----------
-app.post('/tcc/add_vaga', async (req, res) => {
-    const { nome, id_categoria, preco, id_empresa, is_pcd } = req.body;
-    res.json(await inserirVaga(nome, id_categoria, preco, id_empresa, is_pcd ?? false));
+app.post('/tcc/add_vaga', autenticarToken, async (req, res) => {
+    try {
+        // Campos que o frontend deve enviar: nome (area_de_trabalho), preco (salario), is_pcd
+        const { nome, preco, is_pcd } = req.body; 
+        
+        // O ID da empresa é pego de forma segura do token, não do body
+        const id_empresa_token = req.usuario.id; 
+        
+        // CORREÇÃO: id_categoria não é enviado pelo front. Definimos um padrão 
+        // para que a validação não falhe no DAO, assumindo que 1 é um valor válido.
+        const id_categoria = req.body.id_categoria || 1; 
+
+        // Validação: 'nome' (área), 'preco' (salário), 'id_empresa' são cruciais
+        if (!nome || preco == null || !id_empresa_token) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: "Dados incompletos: nome da área, preço e ID da empresa são obrigatórios."
+            });
+        }
+
+        // Inserir no banco
+        const resultado = await inserirVaga(
+            nome,
+            id_categoria,
+            preco,
+            id_empresa_token, // Usando ID seguro
+            is_pcd ?? false 
+        );
+
+        if (resultado.sucesso) {
+            return res.status(201).json({
+                sucesso: true,
+                mensagem: "Vaga inserida com sucesso.",
+                id: resultado.idInserido
+            });
+        } else {
+            // CORREÇÃO: Retorna 500 para erro de lógica/DB com a mensagem de erro
+            return res.status(500).json({
+                sucesso: false,
+                mensagem: resultado.mensagem || "Erro ao inserir vaga. Verifique o DAO.",
+                erro: resultado.erro
+            });
+        }
+    } catch (error) {
+        return res.status(500).json({
+            sucesso: false,
+            mensagem: "Erro inesperado no servidor.",
+            erro: error.message
+        });
+    }
 });
 
 app.patch('/tcc/editar_vaga', async (req, res) => {
@@ -194,5 +241,6 @@ app.listen(porta, () => {
     console.log("✅ Servidor rodando na porta " + porta);
     testarConexao();
 });
+
 
 
