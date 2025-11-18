@@ -145,9 +145,42 @@ app.post('/tcc/login', async (req, res) => {
 
 
 // ---------- Rotas protegidas ----------
-app.get('/tcc/perfil', autenticarToken, (req, res) => {
-    res.json({ sucesso: true, usuario: req.usuario });
+app.get('/tcc/perfil', async (req, res) => {
+    try {
+        const usuario = req.usuario; // do middleware de autenticação
+        const conn = await conexao();
+
+        if (usuario.tipo === 'candidato') {
+            const [rows] = await conn.query(`
+                SELECT c.cpf AS id, c.nome_completo, c.email, c.telefone, c.is_pcd, c.limite, 
+                       a.nome AS area, e.logradouro, e.numero, e.bairro, e.cidade, e.cep
+                FROM tbl_candidato c
+                LEFT JOIN tbl_areas_de_trabalho a ON c.id_status = a.id
+                LEFT JOIN tbl_endereco_do_candidato e ON c.id_endereco = e.id
+                WHERE c.cpf = ?
+            `, [usuario.id]);
+
+            return res.json({ sucesso: true, usuario: rows[0] });
+        } else if (usuario.tipo === 'empresa') {
+            const [rows] = await conn.query(`
+                SELECT id, nome, cnpj, email, cidade, estado
+                FROM tbl_empresa
+                WHERE id = ?
+            `, [usuario.id]);
+
+            return res.json({ sucesso: true, usuario: rows[0] });
+        } else {
+            return res.json({ sucesso: false, mensagem: 'Tipo de usuário inválido.' });
+        }
+
+    } catch (err) {
+        return res.json({ sucesso: false, mensagem: err.message });
+    }
 });
+
+
+
+
 
 app.get('/tcc/empresas', autenticarToken, (req, res) => {
     if (req.usuario.tipo !== 'empresa') return res.status(403).json({ mensagem: "Acesso negado." });
