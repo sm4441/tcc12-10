@@ -2,14 +2,12 @@ const { conexao } = require('./conexao');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// ⚠️ Use variável de ambiente em produção (nunca deixe a chave no código)
 const SECRET = process.env.JWT_SECRET || "segredo_super_forte";
 
 async function login(email, senha, tipo) {
     const conn = await conexao();
     let tabela = "";
 
-    // Escolhe a tabela correta com base no tipo de usuário
     if (tipo === "empresa") {
         tabela = "tbl_empresa";
     } else if (tipo === "candidato") {
@@ -30,24 +28,21 @@ async function login(email, senha, tipo) {
 
         const usuario = rows[0];
 
-        // 🔧 Verifica senha com hash
+        // 🔐 Valida senha
         const senhaCorreta = await bcrypt.compare(String(senha), usuario.senha);
-
         if (!senhaCorreta) {
             return { sucesso: false, mensagem: "Senha incorreta." };
         }
 
-        // ✅ Ajuste para usar CNPJ no login da empresa e CPF no candidato
-        const idUsuario = tipo === "empresa"
-            ? (usuario.id || usuario.cnpj)
-            : (usuario.id || usuario.cpf);
+        // 🔑 Identificador correto
+        const idUsuario = usuario.id || (tipo === "empresa" ? usuario.cnpj : usuario.cpf);
 
-        // ✅ Gera token
+        // 🔐 Gera token JWT
         const token = jwt.sign(
             {
                 id: idUsuario,
                 nome: usuario.nome,
-                tipo,
+                tipo
             },
             SECRET,
             { expiresIn: "2h" }
@@ -57,13 +52,11 @@ async function login(email, senha, tipo) {
             sucesso: true,
             mensagem: "Login realizado com sucesso.",
             token,
-            usuario: {
-                id: idUsuario,
-                nome: usuario.nome,
-                email: usuario.email,
-                tipo,
-            },
+
+            // 🔥 Retorna TODOS os dados da tabela
+            dados: usuario
         };
+
     } catch (err) {
         return { sucesso: false, mensagem: "Erro ao realizar login.", erro: err.message };
     }
