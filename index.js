@@ -55,15 +55,51 @@ app.get('/tcc/busca', async (req, res) => {
 });
 
 app.post('/tcc/add_usuario', async (req, res) => {
-    const { cpf, telefone, nome_completo, email, id_endereco, id_status, senha, limite, is_pcd } = req.body;
+    const { 
+        cpf, 
+        telefone, 
+        nome_completo, 
+        email, 
+        senha, 
+        limite, 
+        is_pcd,
+        id_status,
+        endereco    // ← agora vem como OBJETO
+    } = req.body;
 
-    if (!cpf || !nome_completo || !telefone || !email || !limite || id_endereco == null || id_status == null || !senha) {
+    // 📌 Verificações de segurança
+    if (!cpf || !nome_completo || !telefone || !email || !senha || !limite || id_status == null) {
         return res.status(400).json({ mensagem: "Dados incompletos." });
     }
 
-    const resultado = await inserirCandidato(cpf, nome_completo, telefone, email, id_endereco, id_status, senha, limite, is_pcd ?? false);
-    res.status(resultado.sucesso ? 201 : 500).json(resultado);
+    // 📌 Validar se o endereço veio completo
+    if (
+        !endereco ||
+        !endereco.logradouro ||
+        !endereco.cep ||
+        endereco.numero == null ||
+        !endereco.bairro ||
+        !endereco.cidade
+    ) {
+        return res.status(400).json({ mensagem: "Endereço incompleto." });
+    }
+
+    // ✔ Executa inserção combinada (endereço + candidato)
+    const resultado = await inserirCandidato(
+        cpf,
+        nome_completo,
+        telefone,
+        email,
+        endereco,      // ← envio correto
+        id_status,
+        senha,
+        limite,
+        is_pcd ?? false
+    );
+
+    return res.status(resultado.sucesso ? 201 : 500).json(resultado);
 });
+
 
 app.delete('/tcc/deletar_usuario', async (req, res) => {
     res.json(await deletarUsuario(req.body.cpf));
@@ -241,6 +277,7 @@ app.listen(porta, () => {
     console.log("✅ Servidor rodando na porta " + porta);
     testarConexao();
 });
+
 
 
 
