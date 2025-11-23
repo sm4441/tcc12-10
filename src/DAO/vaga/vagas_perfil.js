@@ -1,11 +1,9 @@
-const { conexao } = require('../conexao');
+const { pool } = require('../conexao');
 
 async function buscarVagasPorPerfil(cpf) {
-    const conn = await conexao();
-
     try {
         // Busca o candidato e sua área de atuação (id_status)
-        const [candidatoRows] = await conn.query(
+        const [candidatoRows] = await pool.query(
             "SELECT id_status, is_pcd FROM tbl_candidato WHERE cpf = ?",
             [cpf]
         );
@@ -17,7 +15,7 @@ async function buscarVagasPorPerfil(cpf) {
         const candidato = candidatoRows[0];
 
         // Busca vagas com base na área (id_status)
-        const [vagasRows] = await conn.query(
+        const [vagasRows] = await pool.query(
             `SELECT v.id_vaga AS nome_vaga, e.nome AS empresa, a.nome AS area, v.is_pcd
              FROM tbl_vaga v
              JOIN tbl_empresa e ON v.id_empresa = e.id
@@ -29,10 +27,8 @@ async function buscarVagasPorPerfil(cpf) {
 
         return { sucesso: true, vagas: vagasRows };
     } catch (err) {
+        console.error("Erro ao buscar vagas por perfil:", err);
         return { sucesso: false, mensagem: "Erro ao buscar vagas.", erro: err.message };
-    } finally {
-        if (conn.release) conn.release();
-        else await conn.end();
     }
 }
 
