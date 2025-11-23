@@ -1,9 +1,7 @@
 const mysql = require("mysql2/promise");
 const dotenv = require("dotenv");
-
 dotenv.config();
 
-// 🔥 CRIA UM ÚNICO POOL GLOBAL
 const pool = mysql.createPool({
   host: process.env.HOST_DATABASE,
   port: process.env.PORTA_BD,
@@ -27,6 +25,5 @@ async function testarConexao() {
     console.error("❌ Erro ao testar conexão:", erro);
   }
 }
-
 
 module.exports = { pool, testarConexao };
