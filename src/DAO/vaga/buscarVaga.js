@@ -19,6 +19,7 @@ async function listarVagasComDetalhes() {
     `;
 
     try {
+        // AGORA FUNCIONA
         const [rows] = await pool.query(sql);
         return rows;
     } catch (err) {
