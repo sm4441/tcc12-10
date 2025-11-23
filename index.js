@@ -145,47 +145,41 @@ app.post('/tcc/notificacao/marcar_lida', authEmpresa, async (req, res) => {
 // ---------- Vagas ----------
 app.post('/tcc/add_vaga', autenticarToken, async (req, res) => {
     try {
-        const { nome, preco, is_pcd } = req.body;
+        const { nome, salario, is_pcd, descricao } = req.body;
         const id_empresa_token = req.usuario.id;
         const id_categoria = req.body.id_categoria || 1;
 
-        if (!nome || preco == null || !id_empresa_token) {
+        if (!nome || salario == null || !id_empresa_token) {
             return res.status(400).json({
                 sucesso: false,
-                mensagem: "Dados incompletos: nome, preço e ID da empresa são obrigatórios."
+                mensagem: "Dados incompletos: nome, salário e ID da empresa são obrigatórios."
             });
         }
 
         const resultado = await inserirVaga(
             nome,
             id_categoria,
-            preco,
+            salario,
             id_empresa_token,
-            is_pcd ?? false
+            descricao || "",
+            is_pcd
         );
 
-        if (!resultado.sucesso) {
-            return res.status(500).json({
-                sucesso: false,
-                mensagem: resultado.mensagem || "Erro ao inserir vaga.",
-                erro: resultado.erro
-            });
-        }
-
-        return res.status(201).json({
+        return res.json({
             sucesso: true,
-            mensagem: "Vaga inserida com sucesso.",
-            id: resultado.idInserido
+            mensagem: "Vaga criada com sucesso!",
+            dados: resultado
         });
 
-    } catch (error) {
+    } catch (erro) {
         return res.status(500).json({
             sucesso: false,
-            mensagem: "Erro inesperado no servidor.",
-            erro: error.message
+            mensagem: "Erro ao criar vaga.",
+            erro: erro.message
         });
     }
 });
+
 
 app.patch('/tcc/editar_vaga', async (req, res) => {
     res.json(await editarVaga(req.body.id_vaga, req.body.campo, req.body.valor));
@@ -261,3 +255,4 @@ const porta = 3000;
 app.listen(porta, () => {
     console.log("✅ Servidor rodando na porta " + porta);
 });
+
