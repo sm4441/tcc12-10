@@ -1,12 +1,10 @@
-const { conexao } = require('../conexao.js');
+const { pool } = require('../conexao');
 
 async function deletarVaga(id_vaga) {
     const sql = `DELETE FROM tbl_vaga WHERE id_vaga = ?`;
-    const conn = await conexao();
 
     try {
-        const [results] = await conn.query(sql, [id_vaga]);
-        await conn.end();
+        const [results] = await pool.query(sql, [id_vaga]);
 
         return {
             sucesso: true,
@@ -14,6 +12,7 @@ async function deletarVaga(id_vaga) {
             alteracoes: results.affectedRows
         };
     } catch (err) {
+        console.error("Erro ao deletar vaga:", err);
         return {
             sucesso: false,
             mensagem: "Erro ao deletar vaga.",
