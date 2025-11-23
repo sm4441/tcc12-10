@@ -1,23 +1,18 @@
-const { conexao } = require('../conexao.js');
+const { pool } = require('../conexao');
 
 async function editarVaga(id_vaga, campo, valor) {
-    const data = [valor, id_vaga];
-
-    // Colunas que podem ser atualizadas
-    const colunasPermitidas = ['id_categoria', 'valor', 'id_empresa', 'is_pcd'];
-
+    const colunasPermitidas = ['id_categoria', 'salario', 'id_empresa', 'is_pcd']; // ajuste conforme tabela
     if (!colunasPermitidas.includes(campo)) {
         throw new Error('Coluna inválida');
     }
 
     const sql = `UPDATE tbl_vaga SET ${campo} = ? WHERE id_vaga = ?;`;
-    const conn = await conexao();
 
     try {
-        const [results] = await conn.query(sql, data);
-        await conn.end();
+        const [results] = await pool.query(sql, [valor, id_vaga]);
         return { sucesso: true, alteracoes: results.affectedRows };
     } catch (err) {
+        console.error("Erro ao editar vaga:", err);
         return { sucesso: false, erro: err.message };
     }
 }
