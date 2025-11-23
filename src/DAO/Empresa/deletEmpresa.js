@@ -1,12 +1,9 @@
 const { pool } = require('../conexao');
 
 async function deletarEmpresa(id) {
-    const sql = `DELETE FROM tbl_empresa WHERE id = ?`;
-    const conn = await conexao();
-
     try {
-        const [results] = await conn.query(sql, [id]);
-        await conn.end();
+        const sql = `DELETE FROM tbl_empresa WHERE id = ?`;
+        const [results] = await pool.query(sql, [id]);
 
         return {
             sucesso: true,
@@ -14,6 +11,7 @@ async function deletarEmpresa(id) {
             alteracoes: results.affectedRows
         };
     } catch (err) {
+        console.error("Erro ao deletar empresa:", err); // Mostra no console
         return {
             sucesso: false,
             mensagem: "Erro ao deletar empresa.",
