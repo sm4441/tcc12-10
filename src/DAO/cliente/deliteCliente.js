@@ -1,20 +1,19 @@
-// ok
 const { pool } = require('../conexao');
 
 async function deletarUsuario(cpf){
-    
-    const sql = `DELETE FROM tbl_candidato WHERE cpf = ?`
-    const conn = await conexao()
-    
-    try {
-        // Executar a consulta
-        const [results] = await conn.query(sql,[cpf]);
+    const sql = `DELETE FROM tbl_candidato WHERE cpf = ?`;
 
-        await conn.end()
-        return results
-      } catch (err) {
-        return err.message
-      }
+    const conn = await pool.getConnection(); // ✔ CORRETO
+
+    try {
+        const [results] = await conn.query(sql, [cpf]);
+        return results;
+    } catch (err) {
+        console.error("Erro ao deletar usuário:", err); // ✔ Mostra no console
+        return err.message;
+    } finally {
+        conn.release(); // ✔ Libera a conexão!
+    }
 }
 
-module.exports = {deletarUsuario}
+module.exports = { deletarUsuario };
