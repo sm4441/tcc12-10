@@ -1,4 +1,4 @@
-const { conexao } = require('../conexao');
+const { pool } = require('../conexao');
 
 async function listarNotificacoesPorEmpresa(id_empresa) {
   const conn = await conexao();
