@@ -6,7 +6,7 @@ async function listarVagasComDetalhes() {
             v.id_vaga,
             v.salario,
             v.is_pcd,
-            v.descricao_vaga AS descricao,
+            v.descricao,
             a.nome AS area_de_trabalho,
             e.nome AS nome_empresa,
             e.cidade AS cidade_empresa,
@@ -19,7 +19,6 @@ async function listarVagasComDetalhes() {
     `;
 
     try {
-        // AGORA FUNCIONA
         const [rows] = await pool.query(sql);
         return rows;
     } catch (err) {
