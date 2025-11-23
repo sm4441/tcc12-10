@@ -1,11 +1,10 @@
-const { conexao } = require('./conexao');
+const { pool } = require("./conexao");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const SECRET = process.env.JWT_SECRET || "segredo_super_forte";
 
 async function login(email, senha, tipo) {
-    const conn = await conexao();
     let tabela = "";
 
     if (tipo === "empresa") {
@@ -19,8 +18,8 @@ async function login(email, senha, tipo) {
     const sql = `SELECT * FROM ${tabela} WHERE email = ?`;
 
     try {
-        const [rows] = await conn.query(sql, [email]);
-        await conn.end();
+        // ❗ Agora usa pool.query direto, sem criar conexão
+        const [rows] = await pool.query(sql, [email]);
 
         if (rows.length === 0) {
             return { sucesso: false, mensagem: "Usuário não encontrado." };
@@ -35,13 +34,15 @@ async function login(email, senha, tipo) {
         }
 
         // 🔑 Identificador correto
-        const idUsuario = usuario.id || (tipo === "empresa" ? usuario.cnpj : usuario.cpf);
+        const idUsuario =
+            usuario.id ||
+            (tipo === "empresa" ? usuario.id_empresa : usuario.id_candidato);
 
         // 🔐 Gera token JWT
         const token = jwt.sign(
             {
                 id: idUsuario,
-                nome: usuario.nome,
+                nome: usuario.nome || usuario.nome_completo,
                 tipo
             },
             SECRET,
@@ -52,13 +53,16 @@ async function login(email, senha, tipo) {
             sucesso: true,
             mensagem: "Login realizado com sucesso.",
             token,
-
-            // 🔥 Retorna TODOS os dados da tabela
             dados: usuario
         };
 
     } catch (err) {
-        return { sucesso: false, mensagem: "Erro ao realizar login.", erro: err.message };
+        console.error("Erro no login:", err);
+        return {
+            sucesso: false,
+            mensagem: "Erro ao realizar login.",
+            erro: err.message
+        };
     }
 }
 
