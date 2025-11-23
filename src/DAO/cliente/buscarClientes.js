@@ -1,6 +1,6 @@
 
 //funcionando
-const {conexao} = require('../conexao')
+const { pool } = require('../conexao');
 
 
 async function buscarClientes(){
