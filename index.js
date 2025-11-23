@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { pool } = require('./src/DAO/conexao.js'); 
 
 const app = express();
 
@@ -28,7 +29,7 @@ const { editarEmpresa } = require('./src/DAO/Empresa/editarEmpresa.js');
 const { marcarNotificacaoComoLida, listarNotificacoesPorEmpresa } = require('./src/DAO/Empresa/notificação.js');
 const { authEmpresa } = require('./src/DAO/middleware/authEmpresa.js');
 
-// Vaga
+// Vagas
 const { inserirVaga } = require('./src/DAO/vaga/addVaga.js');
 const { editarVaga } = require('./src/DAO/vaga/aditarVaga.js');
 const { listarVagasComDetalhes } = require('./src/DAO/vaga/buscarVaga.js');
@@ -39,8 +40,9 @@ const { buscarVagasPorPerfil } = require('./src/DAO/vaga/vagas_perfil.js');
 const { login } = require('./src/DAO/login.js');
 const { autenticarToken } = require('./src/DAO/middleware/authMiddleware.js');
 
-// Banco
-const { testarConexao } = require('./src/DAO/conexao.js');
+// Rota Externa
+const routerempresa = require('./src/DAO/tokenempresa.js');
+app.use('/tcc', routerempresa);
 
 
 // -------------------- Rotas --------------------
@@ -56,23 +58,14 @@ app.get('/tcc/busca', async (req, res) => {
 
 app.post('/tcc/add_usuario', async (req, res) => {
     const { 
-        cpf, 
-        telefone, 
-        nome_completo, 
-        email, 
-        senha, 
-        limite, 
-        is_pcd,
-        id_status,
-        endereco    // ← agora vem como OBJETO
+        cpf, telefone, nome_completo, email, senha, limite, is_pcd,
+        id_status, endereco 
     } = req.body;
 
-    // 📌 Verificações de segurança
     if (!cpf || !nome_completo || !telefone || !email || !senha || !limite || id_status == null) {
         return res.status(400).json({ mensagem: "Dados incompletos." });
     }
 
-    // 📌 Validar se o endereço veio completo
     if (
         !endereco ||
         !endereco.logradouro ||
@@ -84,13 +77,12 @@ app.post('/tcc/add_usuario', async (req, res) => {
         return res.status(400).json({ mensagem: "Endereço incompleto." });
     }
 
-    // ✔ Executa inserção combinada (endereço + candidato)
     const resultado = await inserirCandidato(
         cpf,
         nome_completo,
         telefone,
         email,
-        endereco,      // ← envio correto
+        endereco,
         id_status,
         senha,
         limite,
@@ -99,7 +91,6 @@ app.post('/tcc/add_usuario', async (req, res) => {
 
     return res.status(resultado.sucesso ? 201 : 500).json(resultado);
 });
-
 
 app.delete('/tcc/deletar_usuario', async (req, res) => {
     res.json(await deletarUsuario(req.body.cpf));
@@ -112,7 +103,9 @@ app.patch('/tcc/editar_usuario', async (req, res) => {
 
 app.post('/tcc/candidatar', async (req, res) => {
     const { cpf, id_vaga } = req.body;
-    if (!cpf || !id_vaga) return res.status(400).json({ sucesso: false, mensagem: "CPF e id_vaga são obrigatórios." });
+    if (!cpf || !id_vaga) {
+        return res.status(400).json({ sucesso: false, mensagem: "CPF e id_vaga são obrigatórios." });
+    }
     res.json(await candidatar(cpf, id_vaga));
 });
 
@@ -152,47 +145,39 @@ app.post('/tcc/notificacao/marcar_lida', authEmpresa, async (req, res) => {
 // ---------- Vagas ----------
 app.post('/tcc/add_vaga', autenticarToken, async (req, res) => {
     try {
-        // Campos que o frontend deve enviar: nome (area_de_trabalho), preco (salario), is_pcd
-        const { nome, preco, is_pcd } = req.body; 
-        
-        // O ID da empresa é pego de forma segura do token, não do body
-        const id_empresa_token = req.usuario.id; 
-        
-        // CORREÇÃO: id_categoria não é enviado pelo front. Definimos um padrão 
-        // para que a validação não falhe no DAO, assumindo que 1 é um valor válido.
-        const id_categoria = req.body.id_categoria || 1; 
+        const { nome, preco, is_pcd } = req.body;
+        const id_empresa_token = req.usuario.id;
+        const id_categoria = req.body.id_categoria || 1;
 
-        // Validação: 'nome' (área), 'preco' (salário), 'id_empresa' são cruciais
         if (!nome || preco == null || !id_empresa_token) {
             return res.status(400).json({
                 sucesso: false,
-                mensagem: "Dados incompletos: nome da área, preço e ID da empresa são obrigatórios."
+                mensagem: "Dados incompletos: nome, preço e ID da empresa são obrigatórios."
             });
         }
 
-        // Inserir no banco
         const resultado = await inserirVaga(
             nome,
             id_categoria,
             preco,
-            id_empresa_token, // Usando ID seguro
-            is_pcd ?? false 
+            id_empresa_token,
+            is_pcd ?? false
         );
 
-        if (resultado.sucesso) {
-            return res.status(201).json({
-                sucesso: true,
-                mensagem: "Vaga inserida com sucesso.",
-                id: resultado.idInserido
-            });
-        } else {
-            // CORREÇÃO: Retorna 500 para erro de lógica/DB com a mensagem de erro
+        if (!resultado.sucesso) {
             return res.status(500).json({
                 sucesso: false,
-                mensagem: resultado.mensagem || "Erro ao inserir vaga. Verifique o DAO.",
+                mensagem: resultado.mensagem || "Erro ao inserir vaga.",
                 erro: resultado.erro
             });
         }
+
+        return res.status(201).json({
+            sucesso: true,
+            mensagem: "Vaga inserida com sucesso.",
+            id: resultado.idInserido
+        });
+
     } catch (error) {
         return res.status(500).json({
             sucesso: false,
@@ -221,20 +206,18 @@ app.delete('/tcc/deletar_vaga', async (req, res) => {
 
 // ---------- Login ----------
 app.post('/tcc/login', async (req, res) => {
-    console.log("BODY RECEBIDO:", req.body);
     const resultado = await login(req.body.email, req.body.senha, req.body.tipo);
     res.status(resultado.sucesso ? 200 : 400).json(resultado);
 });
 
 
-// ---------- Rotas protegidas ----------
-app.get('/tcc/perfil', async (req, res) => {
+// ---------- Perfil (Corrigido: usando POOL) ----------
+app.get('/tcc/perfil', autenticarToken, async (req, res) => {
     try {
-        const usuario = req.usuario; // do middleware de autenticação
-        const conn = await conexao();
+        const usuario = req.usuario;
 
         if (usuario.tipo === 'candidato') {
-            const [rows] = await conn.query(`
+            const [rows] = await pool.query(`
                 SELECT c.cpf AS id, c.nome_completo, c.email, c.telefone, c.is_pcd, c.limite, 
                        a.nome AS area, e.logradouro, e.numero, e.bairro, e.cidade, e.cep
                 FROM tbl_candidato c
@@ -244,17 +227,19 @@ app.get('/tcc/perfil', async (req, res) => {
             `, [usuario.id]);
 
             return res.json({ sucesso: true, usuario: rows[0] });
-        } else if (usuario.tipo === 'empresa') {
-            const [rows] = await conn.query(`
+        }
+
+        if (usuario.tipo === 'empresa') {
+            const [rows] = await pool.query(`
                 SELECT id, nome, cnpj, email, cidade, estado
                 FROM tbl_empresa
                 WHERE id = ?
             `, [usuario.id]);
 
             return res.json({ sucesso: true, usuario: rows[0] });
-        } else {
-            return res.json({ sucesso: false, mensagem: 'Tipo de usuário inválido.' });
         }
+
+        return res.status(400).json({ sucesso: false, mensagem: 'Tipo de usuário inválido.' });
 
     } catch (err) {
         return res.json({ sucesso: false, mensagem: err.message });
@@ -262,11 +247,11 @@ app.get('/tcc/perfil', async (req, res) => {
 });
 
 
-
-
-
+// ---------- Rotas privadas (teste) ----------
 app.get('/tcc/empresas', autenticarToken, (req, res) => {
-    if (req.usuario.tipo !== 'empresa') return res.status(403).json({ mensagem: "Acesso negado." });
+    if (req.usuario.tipo !== 'empresa') {
+        return res.status(403).json({ mensagem: "Acesso negado." });
+    }
     res.json({ sucesso: true, mensagem: "Acesso liberado para empresas." });
 });
 
@@ -275,9 +260,4 @@ app.get('/tcc/empresas', autenticarToken, (req, res) => {
 const porta = 3000;
 app.listen(porta, () => {
     console.log("✅ Servidor rodando na porta " + porta);
-    testarConexao();
 });
-
-
-
-
