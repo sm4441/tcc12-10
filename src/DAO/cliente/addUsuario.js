@@ -5,13 +5,13 @@ async function inserirCandidato(
     cpf, nome_completo, telefone, email,
     endereco, id_status, senha, limite, is_pcd = false
 ) {
-    const conn = await conexao();
-
     try {
         // 1) cadastra endereço
-        const [resEndereco] = await conn.query(
-            `INSERT INTO tbl_endereco_do_candidato (logradouro, cep, numero, bairro, cidade)
+        const [resEndereco] = await pool.query(
+            `INSERT INTO tbl_endereco_do_candidato 
+             (logradouro, cep, numero, bairro, cidade)
              VALUES (?, ?, ?, ?, ?)`,
+
             [
                 endereco.logradouro,
                 endereco.cep,
@@ -27,10 +27,11 @@ async function inserirCandidato(
         const senhaHash = await bcrypt.hash(senha, 10);
 
         // 3) cadastra candidato
-        const [resCand] = await conn.query(
+        const [resCand] = await pool.query(
             `INSERT INTO tbl_candidato
             (cpf, nome_completo, telefone, email, id_endereco, id_status, senha, is_pcd, limite)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+
             [
                 cpf,
                 nome_completo,
@@ -43,8 +44,6 @@ async function inserirCandidato(
                 limite
             ]
         );
-
-        await conn.end();
 
         return {
             sucesso: true,
