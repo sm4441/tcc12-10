@@ -1,6 +1,6 @@
 const { pool } = require('../conexao');
 
-async function inserirVaga(nome, id_categoria, preco, id_empresa, descricao = '', is_pcd = false) {
+async function inserirVaga(nome, id_categoria, salario, id_empresa, descricao = '', is_pcd = false) {
     try {
         const sql = `
             INSERT INTO tbl_vaga 
@@ -10,10 +10,10 @@ async function inserirVaga(nome, id_categoria, preco, id_empresa, descricao = ''
 
         const [resultado] = await pool.query(sql, [
             id_categoria,
-            preco,
+            Number(salario),       // salário garantido como número
             id_empresa,
-            is_pcd,
-            descricao
+            Boolean(is_pcd),       // boolean normalizado
+            String(descricao || '') // string garantida
         ]);
 
         return { sucesso: true, idInserido: resultado.insertId };
