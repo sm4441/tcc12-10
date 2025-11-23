@@ -1,4 +1,4 @@
-const { conexao } = require('../conexao');
+const { pool } = require('../conexao');
 
 async function candidatar(cpf, id_vaga) {
     const conn = await conexao();
