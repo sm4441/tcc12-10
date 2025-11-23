@@ -1,4 +1,4 @@
-const { conexao } = require('../conexao.js');
+const { pool } = require('../conexao');
 const bcrypt = require('bcryptjs');
 
 async function inserirEmpresa(nome, cnpj, cidade, estado, email, senha) {
