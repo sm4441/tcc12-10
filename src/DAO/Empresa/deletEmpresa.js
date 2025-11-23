@@ -1,4 +1,4 @@
-const { conexao } = require('../conexao.js');
+const { pool } = require('../conexao');
 
 async function deletarEmpresa(id) {
     const sql = `DELETE FROM tbl_empresa WHERE id = ?`;
