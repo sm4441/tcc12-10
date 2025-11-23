@@ -1,4 +1,4 @@
-const { conexao } = require('../conexao.js');
+const { pool } = require('../conexao');
 
 async function editarEmpresa(id, campo, valor) {
     const data = [valor, id];
