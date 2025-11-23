@@ -1,5 +1,5 @@
 // ok
-const {conexao} = require('../conexao.js')
+const { pool } = require('../conexao');
 
 async function deletarUsuario(cpf){
     
