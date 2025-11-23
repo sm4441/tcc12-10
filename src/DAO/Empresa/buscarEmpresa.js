@@ -1,39 +1,14 @@
-
-//funcionando
 const { pool } = require('../conexao');
 
-
-async function buscarEmpresa(){
-    const sql = `SELECT * FROM tbl_empresa;`
-    
-    const conn = await conexao()
+async function buscarEmpresa() {
     try {
-        // Executar a consulta
-        const [rows, fields] = await conn.query(sql);
-        await conn.end()
-        return rows
-      } catch (err) {
-        return err.message
-      }
+        const sql = `SELECT * FROM tbl_empresa;`;
+        const [rows] = await pool.query(sql); // pool gerencia conexão automaticamente
+        return rows;
+    } catch (err) {
+        console.error("Erro ao buscar empresas:", err);
+        return { erro: err.message };
+    }
 }
 
-module.exports = {buscarEmpresa}
-//funcionando
-const {conexao} = require('../conexao.js')
-
-
-async function buscarEmpresa(){
-    const sql = `SELECT * FROM tbl_empresa;`
-    
-    const conn = await conexao()
-    try {
-        // Executar a consulta
-        const [rows, fields] = await conn.query(sql);
-        await conn.end()
-        return rows
-      } catch (err) {
-        return err.message
-      }
-}
-
-module.exports = {buscarEmpresa}
+module.exports = { buscarEmpresa };
